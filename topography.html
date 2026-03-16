@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emotion Attractor Landscape — The Emotional Athlete</title>
+<meta name="description" content="An interactive 3D visualisation of emotions as attractor states in a dynamical landscape, shaped by confidence, surprise, and goal momentum.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f0f2f5;color:#2a3040;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.wrap{max-width:900px;width:100%;padding:28px 20px 44px;}
+h1{font-size:24px;font-weight:700;color:#1a2030;margin-bottom:5px;letter-spacing:-0.4px;}
+.subtitle{font-size:14px;color:#5a6578;margin-bottom:22px;font-weight:400;}
+.subtitle a{color:#4a6a8a;text-decoration:underline;text-underline-offset:2px;font-weight:600;}
+.subtitle a:hover{color:#2a4a6a;}
+#container{width:100%;height:520px;border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,0.1);position:relative;cursor:grab;box-shadow:0 4px 24px rgba(0,0,0,0.12);}
+#container:active{cursor:grabbing;}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#8a94a4;margin-top:24px;margin-bottom:10px;}
+.sliders{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+@media(max-width:600px){.sliders{grid-template-columns:1fr;gap:16px;}}
+.slider-group label{font-size:13px;font-weight:700;color:#2a3040;display:flex;justify-content:space-between;margin-bottom:7px;}
+.slider-group label span:last-child{font-weight:700;color:#1a2030;font-variant-numeric:tabular-nums;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:#d0d4dc;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#4a6a8a;cursor:pointer;border:3px solid #f0f2f5;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:background 0.15s;}
+input[type=range]::-webkit-slider-thumb:hover{background:#3a5a7a;}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#4a6a8a;cursor:pointer;border:3px solid #f0f2f5;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.slider-hints{display:flex;justify-content:space-between;font-size:10px;color:#6a7888;margin-top:4px;font-weight:500;}
+.view-sliders{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+@media(max-width:600px){.view-sliders{grid-template-columns:1fr;gap:12px;}}
+.view-sliders label{font-size:12px;font-weight:600;color:#5a6578;display:flex;justify-content:space-between;margin-bottom:5px;}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;font-size:13px;font-weight:700;color:#2a3858;}
+.legend-item{display:flex;align-items:center;gap:6px;}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
+.hint{color:#7a8494;font-size:11px;margin-left:14px;font-weight:500;}
+.footer{margin-top:28px;font-size:12px;color:#6a7588;line-height:1.7;border-top:1px solid rgba(0,0,0,0.08);padding-top:18px;font-weight:400;}
+.footer a{color:#4a6a8a;text-decoration:none;font-weight:700;}
+.footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Emotion attractor landscape</h1>
+  <p class="subtitle">An interactive model of emotions as attractor states in a dynamical system — <a href="https://flynndisney.com" target="_blank">The Emotional Athlete</a></p>
+
+  <div id="container"></div>
+
+  <div class="section-label">Context parameters</div>
+  <div class="sliders">
+    <div class="slider-group">
+      <label><span>Confidence</span><span id="v0">0.50</span></label>
+      <input type="range" min="0" max="100" value="50" id="s0" />
+      <div class="slider-hints"><span>Low trust in own signals</span><span>High trust in own signals</span></div>
+    </div>
+    <div class="slider-group">
+      <label><span>Surprise</span><span id="v1">0.50</span></label>
+      <input type="range" min="0" max="100" value="50" id="s1" />
+      <div class="slider-hints"><span>World matches predictions</span><span>Predictions being violated</span></div>
+    </div>
+    <div class="slider-group">
+      <label><span>Goal momentum</span><span id="v2">0.50</span></label>
+      <input type="range" min="0" max="100" value="50" id="s2" />
+      <div class="slider-hints"><span>Losing ground / depleted</span><span>Gaining ground / resourced</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">View controls</div>
+  <div class="view-sliders">
+    <div class="slider-group">
+      <label><span>Rotate</span><span id="vr">180°</span></label>
+      <input type="range" min="0" max="360" value="180" id="sr" />
+    </div>
+    <div class="slider-group">
+      <label><span>Tilt</span><span id="vt">30°</span></label>
+      <input type="range" min="0" max="360" value="30" id="st" />
+    </div>
+    <div class="slider-group">
+      <label><span>Zoom</span><span id="vz">50%</span></label>
+      <input type="range" min="0" max="100" value="50" id="sz" />
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:#4fc3f7;"></span>Joy</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#66bb6a;"></span>Serenity</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#80deea;"></span>Hope</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#ab47bc;"></span>Anxiety</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#ef5350;"></span>Fear</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#5c6bc0;"></span>Depression</span>
+    <span class="hint">Or drag to rotate · Scroll to zoom</span>
+  </div>
+
+  <div class="footer">
+    <p>Emotions modelled as attractor basins in a valence × arousal state space. The three control parameters — confidence (precision weighting), surprise (prediction error), and goal momentum (free energy gradient) — reshape which emotional states are accessible. Based on dynamical systems approaches to emotion (Colombetti 2014; Lewis & Liu 2011) and predictive processing frameworks.</p>
+    <p style="margin-top:8px;">Part of the Joy Study research by Flynn Disney · <a href="https://flynndisney.com">flynndisney.com</a></p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+var w=document.getElementById('container');
+var W=w.clientWidth,H=w.clientHeight;
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(50,W/H,0.1,1000);
+var renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setClearColor(0x0a0e17);
+w.appendChild(renderer.domElement);
+
+var SIZE=5,RES=120;
+
+var emos=[
+  {name:'Joy',        v: 0.75, a: 0.60, baseD:1.1,  baseW:1.1,  col:0x4fc3f7, type:'flat',  conf:1.0,  surp:-0.3, gmom:1.6},
+  {name:'Serenity',   v: 0.60, a:-0.55, baseD:0.9,  baseW:1.4,  col:0x66bb6a, type:'deep',  conf:1.7,  surp:-1.3, gmom:0.7},
+  {name:'Hope',       v: 0.50, a: 0.15, baseD:0.7,  baseW:0.9,  col:0x80deea, type:'chan',   conf:0.8,  surp:0.3,  gmom:1.6},
+  {name:'Anxiety',    v:-0.50, a: 0.50, baseD:1.5,  baseW:1.1,  col:0xab47bc, type:'deep',  conf:-1.1, surp:1.4,  gmom:-0.7},
+  {name:'Fear',       v:-0.65, a: 0.80, baseD:1.4,  baseW:0.7,  col:0xef5350, type:'deep',  conf:0.2,  surp:1.8,  gmom:-0.5},
+  {name:'Depression', v:-0.70, a:-0.60, baseD:1.8,  baseW:1.3,  col:0x5c6bc0, type:'deep',  conf:-0.8, surp:-0.3, gmom:-1.5}
+];
+
+var geo=new THREE.PlaneGeometry(SIZE*2,SIZE*2,RES-1,RES-1);geo.rotateX(-Math.PI/2);
+var pos=geo.attributes.position;
+var colors=new Float32Array(pos.count*3);
+geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+scene.add(new THREE.Mesh(geo,new THREE.MeshPhongMaterial({vertexColors:true,side:THREE.DoubleSide,shininess:30,transparent:true,opacity:0.92})));
+var wireGeo=new THREE.PlaneGeometry(SIZE*2,SIZE*2,RES-1,RES-1);wireGeo.rotateX(-Math.PI/2);
+scene.add(new THREE.Mesh(wireGeo,new THREE.MeshBasicMaterial({wireframe:true,color:0xffffff,transparent:true,opacity:0.03})));
+
+var dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(5,8,5);scene.add(dl);
+var dl2=new THREE.DirectionalLight(0x6688cc,0.5);dl2.position.set(-5,4,-3);scene.add(dl2);
+var dl3=new THREE.DirectionalLight(0xffeedd,0.3);dl3.position.set(0,6,-5);scene.add(dl3);
+scene.add(new THREE.AmbientLight(0x222244,0.7));
+
+function mkAx(t,sz){
+  var c=document.createElement('canvas');c.width=1024;c.height=96;
+  var x=c.getContext('2d');x.font='700 '+(sz||38)+'px sans-serif';x.fillStyle='#c0d0e0';x.textAlign='center';x.textBaseline='middle';x.fillText(t,512,48);
+  var s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0.95}));
+  s.scale.set(4.2,0.52,1);return s;
+}
+function mkEm(t){
+  var c=document.createElement('canvas');c.width=512;c.height=96;
+  var x=c.getContext('2d');x.font='700 42px sans-serif';x.fillStyle='#ffffff';x.textAlign='center';x.textBaseline='middle';x.fillText(t,256,48);
+  var s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0.95}));
+  s.scale.set(2.4,0.6,1);return s;
+}
+
+var axLen=SIZE*0.92,az=0.28;
+var axMat=new THREE.LineBasicMaterial({color:0x8aaabe,transparent:true,opacity:0.8});
+function aL(p){scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p),axMat));}
+aL([new THREE.Vector3(-axLen,0.1,0),new THREE.Vector3(axLen,0.1,0)]);
+aL([new THREE.Vector3(axLen-az,0.1,az*.6),new THREE.Vector3(axLen,0.1,0),new THREE.Vector3(axLen-az,0.1,-az*.6)]);
+aL([new THREE.Vector3(-axLen+az,0.1,az*.6),new THREE.Vector3(-axLen,0.1,0),new THREE.Vector3(-axLen+az,0.1,-az*.6)]);
+aL([new THREE.Vector3(0,0.1,-axLen),new THREE.Vector3(0,0.1,axLen)]);
+aL([new THREE.Vector3(az*.6,0.1,axLen-az),new THREE.Vector3(0,0.1,axLen),new THREE.Vector3(-az*.6,0.1,axLen-az)]);
+aL([new THREE.Vector3(az*.6,0.1,-axLen+az),new THREE.Vector3(0,0.1,-axLen),new THREE.Vector3(-az*.6,0.1,-axLen+az)]);
+var yG=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0.1,0),new THREE.Vector3(0,-4.0,0)]);
+var yLine=new THREE.Line(yG,new THREE.LineDashedMaterial({color:0x8aaabe,transparent:true,opacity:0.6,dashSize:0.2,gapSize:0.12}));
+yLine.computeLineDistances();scene.add(yLine);
+aL([new THREE.Vector3(az*.5,-4.0+az,0),new THREE.Vector3(0,-4.0,0),new THREE.Vector3(-az*.5,-4.0+az,0)]);
+
+var lp=mkAx('Positive valence \u2192',36);lp.position.set(axLen+0.8,0.38,0);scene.add(lp);
+var ln=mkAx('\u2190 Negative valence',36);ln.position.set(-axLen-0.8,0.38,0);scene.add(ln);
+var lh=mkAx('High arousal \u2192',36);lh.position.set(0,0.38,axLen+0.8);scene.add(lh);
+var ll=mkAx('\u2190 Low arousal',36);ll.position.set(0,0.38,-axLen-0.8);scene.add(ll);
+var ld=mkAx('\u2193 Attractor depth',30);ld.position.set(0.7,-3.6,0.4);ld.scale.set(3.2,0.45,1);scene.add(ld);
+
+var mSpr=[],mMrk=[];
+for(var e=0;e<emos.length;e++){
+  var em=emos[e];
+  var sp=mkEm(em.name);scene.add(sp);mSpr.push(sp);
+  var mk=new THREE.Mesh(new THREE.SphereGeometry(0.1,12,12),new THREE.MeshBasicMaterial({color:em.col}));
+  scene.add(mk);mMrk.push(mk);
+}
+
+function G(x,z,cx,cz,d,ww){var dx=x-cx,dz=z-cz;return -d*Math.exp(-(dx*dx+dz*dz)/(ww*ww)*2);}
+
+function getP(conf,surp,gmom){
+  var P=[];
+  for(var e=0;e<emos.length;e++){
+    var em=emos[e];
+    var inf=conf*em.conf+surp*em.surp+gmom*em.gmom;
+    var sc=Math.max(0.1,Math.min(3.0,1+inf*0.35));
+    var d=em.baseD*sc;
+    var ww=em.baseW*(1.3-conf*0.25);
+    if(em.type==='flat'){ww*=(1+d*0.1);d*=0.85;}
+    else if(em.type==='chan'){ww*=(0.8+surp*0.2+0.2);}
+    if(em.a>0.3)d*=(0.5+(0.5+gmom*0.5)*0.7);
+    else if(em.a<-0.3)d*=(1.15-(0.5+gmom*0.5)*0.35);
+    P.push({d:d,w:ww,cx:em.v*SIZE*0.8,cz:em.a*SIZE*0.8});
+  }
+  return P;
+}
+
+function upd(conf,surp,gmom){
+  var P=getP(conf,surp,gmom);
+  var p=geo.attributes.position,wp=wireGeo.attributes.position,co=geo.attributes.color;
+  for(var i=0;i<p.count;i++){
+    var x=p.getX(i),z=p.getZ(i),y=0;
+    for(var e=0;e<P.length;e++){var pp=P[e];y+=G(x,z,pp.cx,pp.cz,pp.d,pp.w);}
+    p.setY(i,y);wp.setY(i,y);
+    var rr=0,gg=0,bb=0,tw=0;
+    for(var e=0;e<P.length;e++){
+      var pp=P[e],dx=x-pp.cx,dz=z-pp.cz;
+      var wt=Math.exp(-(dx*dx+dz*dz)/(pp.w*pp.w*1.5))*(pp.d/emos[e].baseD);
+      var c=new THREE.Color(emos[e].col);
+      rr+=c.r*wt;gg+=c.g*wt;bb+=c.b*wt;tw+=wt;
+    }
+    var mf=Math.min(tw,1)*0.75;
+    co.setXYZ(i,0.07*(1-mf)+(tw>0.01?rr/tw:0)*mf,0.09*(1-mf)+(tw>0.01?gg/tw:0)*mf,0.13*(1-mf)+(tw>0.01?bb/tw:0)*mf);
+  }
+  p.needsUpdate=true;wp.needsUpdate=true;co.needsUpdate=true;
+  geo.computeVertexNormals();
+  for(var e=0;e<P.length;e++){
+    var pp=P[e],cy=0;
+    for(var e2=0;e2<P.length;e2++){var p2=P[e2];cy+=G(pp.cx,pp.cz,p2.cx,p2.cz,p2.d,p2.w);}
+    mSpr[e].position.set(pp.cx,cy-0.28,pp.cz);
+    mMrk[e].position.set(pp.cx,cy+0.03,pp.cz);
+    mMrk[e].scale.setScalar(Math.min(0.5+(P[e].d/emos[e].baseD)*0.5,1.8));
+  }
+}
+
+var sls=[],vls=[];
+for(var i=0;i<3;i++){sls.push(document.getElementById('s'+i));vls.push(document.getElementById('v'+i));}
+function onI(){
+  var vals=[];
+  for(var i=0;i<3;i++){var v=parseInt(sls[i].value)/100;vals.push(v);vls[i].textContent=v.toFixed(2);}
+  upd(vals[0]*2-1,vals[1]*2-1,vals[2]*2-1);
+}
+for(var i=0;i<3;i++)sls[i].addEventListener('input',onI);
+upd(0,0,0);
+
+var rotSlider=document.getElementById('sr');
+var tiltSlider=document.getElementById('st');
+var zoomSlider=document.getElementById('sz');
+var rotValEl=document.getElementById('vr');
+var tiltValEl=document.getElementById('vt');
+var zoomValEl=document.getElementById('vz');
+
+var tRY=Math.PI,tRX=0.52,tD=13;
+var rY=tRY,rX=tRX,d=tD;
+
+function updateFromViewSliders(){
+  tRY=parseFloat(rotSlider.value)*Math.PI/180;
+  tRX=parseFloat(tiltSlider.value)*Math.PI/180;
+  tD=5+(1-parseInt(zoomSlider.value)/100)*20;
+  rotValEl.textContent=rotSlider.value+'\u00B0';
+  tiltValEl.textContent=tiltSlider.value+'\u00B0';
+  zoomValEl.textContent=zoomSlider.value+'%';
+}
+rotSlider.addEventListener('input',updateFromViewSliders);
+tiltSlider.addEventListener('input',updateFromViewSliders);
+zoomSlider.addEventListener('input',updateFromViewSliders);
+updateFromViewSliders();
+
+var isDrag=false,pX=0,pY=0;
+renderer.domElement.addEventListener('pointerdown',function(e){isDrag=true;pX=e.clientX;pY=e.clientY;});
+window.addEventListener('pointerup',function(){isDrag=false;});
+window.addEventListener('pointermove',function(e){
+  if(!isDrag)return;
+  tRY+=(e.clientX-pX)*0.005;
+  tRX+=(e.clientY-pY)*0.003;
+  tRX=tRX;
+  pX=e.clientX;pY=e.clientY;
+  rotSlider.value=Math.round(((tRY%(2*Math.PI))+(2*Math.PI))%(2*Math.PI)*180/Math.PI);
+  tiltSlider.value=Math.round(tRX*180/Math.PI);
+  rotValEl.textContent=rotSlider.value+'\u00B0';
+  tiltValEl.textContent=tiltSlider.value+'\u00B0';
+});
+renderer.domElement.addEventListener('wheel',function(e){
+  e.preventDefault();
+  tD+=e.deltaY*0.01;
+  tD=Math.max(5,Math.min(25,tD));
+  zoomSlider.value=Math.round((1-(tD-5)/20)*100);
+  zoomValEl.textContent=zoomSlider.value+'%';
+},{passive:false});
+
+function anim(){
+  requestAnimationFrame(anim);
+  rY+=(tRY-rY)*0.1;
+  rX+=(tRX-rX)*0.1;
+  d+=(tD-d)*0.1;
+  camera.position.x=Math.sin(rY)*Math.cos(rX)*d;
+  camera.position.y=Math.sin(rX)*d;
+  camera.position.z=Math.cos(rY)*Math.cos(rX)*d;
+  camera.lookAt(0,-0.8,0);
+  renderer.render(scene,camera);
+}
+anim();
+
+window.addEventListener('resize',function(){
+  W=w.clientWidth;H=w.clientHeight;
+  camera.aspect=W/H;camera.updateProjectionMatrix();
+  renderer.setSize(W,H);
+});
+})();
+</script>
+</body>
+</html>
