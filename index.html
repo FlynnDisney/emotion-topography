@@ -503,7 +503,11 @@ function anim(){requestAnimationFrame(anim);
   bp.x+=(bt.x-bp.x)*0.05;bp.y+=(bt.y-bp.y)*0.05;bp.z+=(bt.z-bp.z)*0.05;
   bl.position.set(bp.x,bp.y,bp.z);gw.position.set(bp.x,bp.y,bp.z);
   cam.position.x=Math.sin(rY)*Math.cos(rX)*camDist;cam.position.y=Math.sin(rX)*camDist;cam.position.z=Math.cos(rY)*Math.cos(rX)*camDist;
-  cam.lookAt(0,-0.5,0);ren.render(sc,cam);
+  // Offset lookAt to center landscape in visible area (account for side/bottom panel)
+  var offX=window.innerWidth>700?-0.6:0;
+  var offY=window.innerWidth>700?-0.5:-0.2;
+  cam.lookAt(offX,offY,0);
+  ren.render(sc,cam);
 }
 
 window.addEventListener('resize',function(){W=innerWidth;H=innerHeight;cam.aspect=W/H;cam.updateProjectionMatrix();ren.setSize(W,H);});
