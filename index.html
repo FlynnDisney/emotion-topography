@@ -9,7 +9,7 @@
 :root{--bg:#0c0f14;--surface:rgba(21,25,32,0.92);--border:rgba(255,255,255,0.08);--text:#e8e6e1;--text2:#8a8880;--text3:#5a5850;--accent:#c8a96e;--accent2:#a08550;--success:#4ade80;--fail:#f87171}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Livvic',sans-serif;overflow:hidden;height:100vh}
-#landscape{position:absolute;top:0;left:0;right:0;bottom:0;z-index:0;cursor:grab}
+#landscape{position:absolute;top:0;left:0;z-index:0;cursor:grab}
 #landscape:active{cursor:grabbing}
 
 .side{position:fixed;right:0;top:0;bottom:0;width:280px;z-index:10;display:flex;flex-direction:column;pointer-events:none;background:linear-gradient(to left,rgba(12,15,20,0.92) 70%,transparent);padding:16px 16px 16px 24px}
@@ -87,7 +87,6 @@ body{background:var(--bg);color:var(--text);font-family:'Livvic',sans-serif;over
 .handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);margin:0 auto}
 
 @media(max-width:700px){
-  #landscape{bottom:45%}
   .side{
     width:100%;top:55%;bottom:0;left:0;right:0;height:auto;
     background:rgba(12,15,20,0.98);
@@ -342,7 +341,14 @@ var levels=[
 ];
 var cl=0,tp=0;
 
-var cv=document.getElementById('landscape'),W=cv.clientWidth||innerWidth,H=cv.clientHeight||innerHeight;
+function getCanvasSize(){
+  var isMobile=window.innerWidth<=700;
+  var w=window.innerWidth;
+  var h=isMobile?Math.floor(window.innerHeight*0.55):window.innerHeight;
+  return{w:w,h:h};
+}
+var csz=getCanvasSize();var W=csz.w,H=csz.h;
+var cv=document.getElementById('landscape');
 var sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,W/H,0.1,100);
 var ren=new THREE.WebGLRenderer({canvas:cv,antialias:true});
 ren.setSize(W,H);ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setClearColor(0x0a0e17);
@@ -517,12 +523,11 @@ function anim(){requestAnimationFrame(anim);
 }
 
 function resizeCanvas(){
-  W=cv.clientWidth;H=cv.clientHeight;
+  var csz=getCanvasSize();W=csz.w;H=csz.h;
   cam.aspect=W/H;cam.updateProjectionMatrix();
   ren.setSize(W,H);
 }
 window.addEventListener('resize',resizeCanvas);
-resizeCanvas();
 
 setupLevel();anim();
 })();
