@@ -505,7 +505,7 @@ function anim(){requestAnimationFrame(anim);
   cam.position.x=Math.sin(rY)*Math.cos(rX)*camDist;cam.position.y=Math.sin(rX)*camDist;cam.position.z=Math.cos(rY)*Math.cos(rX)*camDist;
   // Offset lookAt to center landscape in visible area (account for side/bottom panel)
   var offX=window.innerWidth>700?-0.6:0;
-  var offY=window.innerWidth>700?-0.5:-0.2;
+  var offY=window.innerWidth>700?-0.5:0.3;
   cam.lookAt(offX,offY,0);
   ren.render(sc,cam);
 }
