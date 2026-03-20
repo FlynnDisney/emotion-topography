@@ -83,11 +83,43 @@ body{background:var(--bg);color:var(--text);font-family:'Livvic',sans-serif;over
 .intro-footer{text-align:center}
 .intro-footer .ovb{padding:12px 36px;font-size:14px}
 
+.drawer-handle{display:none}
+.handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);margin:0 auto}
+
 @media(max-width:700px){
-  .side{width:100%;height:auto;top:auto;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(12,15,20,0.95) 70%,transparent);padding:10px 16px 16px;flex-direction:column}
+  .side{
+    width:100%;top:auto;bottom:0;left:0;right:0;height:auto;
+    background:rgba(12,15,20,0.95);
+    backdrop-filter:blur(14px);
+    padding:0 16px 16px;
+    border-top:1px solid var(--border);
+    border-radius:16px 16px 0 0;
+    transition:transform 0.3s ease;
+  }
+  .side.collapsed{transform:translateY(calc(100% - 90px))}
+  .drawer-handle{
+    display:flex;padding:10px 0 8px;cursor:pointer;
+    justify-content:center;pointer-events:auto;
+  }
   .s-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .s-sliders{flex-direction:row;gap:8px}
-  .s-sliders .sg{flex:1}
+  .s-sliders{flex-direction:row;gap:6px}
+  .s-sliders .sg{flex:1;padding:6px 8px}
+  .s-sliders .sg-n{font-size:10px}
+  .s-sliders .sg-v{font-size:9px}
+  .s-sliders .sg-lb span{font-size:7px}
+  .s-sliders .sg input[type="range"]{height:4px}
+  .s-sliders .sg input[type="range"]::-webkit-slider-thumb{width:14px;height:14px}
+  .s-sliders .sg input[type="range"]::-moz-range-thumb{width:14px;height:14px}
+  .s-target{padding:8px 12px;margin-bottom:8px}
+  .s-target .em{font-size:18px}
+  .s-readout{padding:6px 10px;margin-bottom:8px}
+  .ro-em{font-size:14px}
+  .s-btns{gap:6px}
+  .btn{padding:8px;font-size:11px}
+  .drag-hint{bottom:96px}
+  .intro-3d{height:160px}
+  .intro-card{padding:24px 20px;max-height:90vh;overflow-y:auto}
+  .ovc{max-height:85vh;overflow-y:auto}
 }
 </style>
 </head>
@@ -95,7 +127,8 @@ body{background:var(--bg);color:var(--text);font-family:'Livvic',sans-serif;over
 <canvas id="landscape"></canvas>
 <div class="drag-hint">drag landscape to rotate</div>
 
-<div class="side">
+<div class="side" id="sidePanel">
+  <div class="drawer-handle" id="drawerHandle"><div class="handle-bar"></div></div>
   <div class="s-header">
     <div class="s-title">Attractor basins</div>
     <div class="s-pips" id="pips"></div>
@@ -432,14 +465,38 @@ sE.forEach(function(s){s.addEventListener('input',onSlider);});
 document.getElementById('rbtn').addEventListener('click',function(){sE.forEach(function(s){s.value=50;});onSlider();});
 document.getElementById('lbtn').addEventListener('click',checkAnswer);
 
+// Drawer toggle for mobile
+var side=document.getElementById('sidePanel');
+var handle=document.getElementById('drawerHandle');
+if(window.innerWidth<=700) side.classList.add('collapsed');
+handle.addEventListener('click',function(){side.classList.toggle('collapsed');});
+
+// Landscape rotation - pointer (desktop)
 var isDrag=false,pX=0,pY=0;
-cv.addEventListener('pointerdown',function(e){isDrag=true;pX=e.clientX;pY=e.clientY;});
+cv.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse'){isDrag=true;pX=e.clientX;pY=e.clientY;}});
 window.addEventListener('pointerup',function(){isDrag=false;});
 window.addEventListener('pointermove',function(e){if(!isDrag)return;tRY+=(e.clientX-pX)*0.005;tRX+=(e.clientY-pY)*0.004;tRX=Math.max(0.15,Math.min(1.1,tRX));pX=e.clientX;pY=e.clientY;});
-var t0=null;
-cv.addEventListener('touchstart',function(e){if(e.touches.length===1){t0={x:e.touches[0].clientX,y:e.touches[0].clientY};e.preventDefault();}},{passive:false});
-cv.addEventListener('touchmove',function(e){if(t0&&e.touches.length===1){tRY+=(e.touches[0].clientX-t0.x)*0.005;tRX+=(e.touches[0].clientY-t0.y)*0.004;tRX=Math.max(0.15,Math.min(1.1,tRX));t0={x:e.touches[0].clientX,y:e.touches[0].clientY};e.preventDefault();}},{passive:false});
-cv.addEventListener('touchend',function(){t0=null;});
+
+// Landscape rotation - touch (two-finger on mobile for no conflict with sliders)
+var t0=null,t1=null;
+cv.addEventListener('touchstart',function(e){
+  if(e.touches.length===2){t0={x:e.touches[0].clientX,y:e.touches[0].clientY};t1={x:e.touches[1].clientX,y:e.touches[1].clientY};e.preventDefault();}
+  else if(e.touches.length===1 && window.innerWidth>700){t0={x:e.touches[0].clientX,y:e.touches[0].clientY};e.preventDefault();}
+},{passive:false});
+cv.addEventListener('touchmove',function(e){
+  if(e.touches.length===2 && t0 && t1){
+    var mx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+    var my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    var omx=(t0.x+t1.x)/2;var omy=(t0.y+t1.y)/2;
+    tRY+=(mx-omx)*0.005;tRX+=(my-omy)*0.004;tRX=Math.max(0.15,Math.min(1.1,tRX));
+    t0={x:e.touches[0].clientX,y:e.touches[0].clientY};t1={x:e.touches[1].clientX,y:e.touches[1].clientY};
+    e.preventDefault();
+  } else if(e.touches.length===1 && t0 && window.innerWidth>700){
+    tRY+=(e.touches[0].clientX-t0.x)*0.005;tRX+=(e.touches[0].clientY-t0.y)*0.004;tRX=Math.max(0.15,Math.min(1.1,tRX));
+    t0={x:e.touches[0].clientX,y:e.touches[0].clientY};e.preventDefault();
+  }
+},{passive:false});
+cv.addEventListener('touchend',function(){t0=null;t1=null;});
 
 function anim(){requestAnimationFrame(anim);
   rY+=(tRY-rY)*0.08;rX+=(tRX-rX)*0.08;
